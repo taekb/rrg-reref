@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rrg-reref"
+version = "0.1.0"
+description = "Reporting Practice Matters: The Impact of Reference Choice on Chest X-ray Report Evaluation."
+authors = [
+    { name="Anonymous" }
+]
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    # Add your project dependencies here, e.g. "numpy>=1.21.0"
+    "numpy",
+    "pandas",
+    "transformers",
+    "accelerate",
+    "vllm",
+    "datasets",
+    "evaluate",
+    "easydict",
+    "fire",
+    "scikit-learn",
+    "openai",
+    "anthropic",
+    "instructor",
+    "python-Levenshtein",
+    "kagglehub",
+    "sacrebleu",
+    "rouge-score",
+    "RadEval==0.0.6",
+    "qwen-vl-utils", # Needed for CheXOne
+]
+
+[project.optional-dependencies]
+all = [
+    "seaborn",
+    "redlines"
+]
+
+[tool.setuptools]
+packages = ["rrg_reref"]
+

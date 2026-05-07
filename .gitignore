@@ -1,0 +1,11 @@
+__pycache__/
+*.egg-info/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+
+# Data/results/logs (generated at runtime)
+data/
+results/
+logs/
+flagged_studies.json
