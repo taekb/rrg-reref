@@ -1,6 +1,6 @@
 # rrg-reref
 
-Code accompanying the paper *"Reporting Practice Matters: The Impact of Reference Choice on Chest X-ray Report Evaluation"*.
+This is official code accompanying the NeurIPS 2026 E&D Track paper *"Reporting Practice Matters: The Impact of Reference Choice on Chest X-ray Report Evaluation"* (Jeong et al., 2026).
 
 This repository provides:
 - The **stylistic perturbation pipeline** for generating LLM-rewritten alternative reference reports along controlled style axes (structure, scope, granularity, terminology, hedging, negation, etc.).
