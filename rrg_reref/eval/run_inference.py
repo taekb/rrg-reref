@@ -29,10 +29,7 @@ from rrg_reref.utils.logging import rank0_print
 def get_image_dir(dataset_name: str) -> str:
     '''Returns the image directory for a given dataset.'''
 
-    if dataset_name == 'rexval':
-        return Path(os.getenv('MIMIC_CXR_JPG_DIR'))
-
-    elif dataset_name == 'mimic-cxr':
+    if dataset_name == 'mimic-cxr':
         return Path(os.getenv('MIMIC_CXR_JPG_DIR'))
 
     elif dataset_name == 'chexpertplus':
@@ -48,7 +45,6 @@ def infer(
     model_name: str,
     dataset_name: str,
     output_dir: Union[str,Path],
-    mimic_cxr_parser: Optional[str] = 'llm',
     section_to_generate: Optional[str] = None,
     split: Optional[str] = 'test',
     load_pretrained: Optional[bool] = True,
@@ -91,10 +87,7 @@ def infer(
         )
 
     # Check if inference has already been done
-    if dataset_name in ['mimic-cxr', 'rexval']:
-        output_dir = Path(output_dir) / dataset_name / mimic_cxr_parser / model_name.replace('/', '--')
-    else:
-        output_dir = Path(output_dir) / dataset_name / model_name.replace('/', '--')
+    output_dir = Path(output_dir) / dataset_name / model_name.replace('/', '--')
     
     if do_sample:
         output_path = output_dir / f'{split}_T={temperature},p={top_p},t={max_new_tokens},seed={seed}_predicted-{section_to_generate}.json'
@@ -235,7 +228,7 @@ def infer(
 
     # Load dataset
     rank0_print_(f'Loading the JSON file for "{dataset_name}"...')
-    dataset = load_dataset(dataset_name, mimic_cxr_parser=mimic_cxr_parser, split=split)
+    dataset = load_dataset(dataset_name, split=split)
 
     # Iterate through examples and generate outputs
     study_ids = list(dataset.keys())

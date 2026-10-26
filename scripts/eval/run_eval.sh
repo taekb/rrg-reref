@@ -13,9 +13,8 @@ export TOKENIZERS_PARALLELISM=false
 export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
 
 [ -z "${model_name}" ] && model_name=google/medgemma-4b-it
-[ -z "${dataset_name}" ] && dataset_name=rexval
+[ -z "${dataset_name}" ] && dataset_name=mimic-cxr
 [ -z "${output_dir}" ] && output_dir=${PROJECT_ROOT}/results
-[ -z "${mimic_cxr_parser}" ] && mimic_cxr_parser=llm
 [ -z "${split}" ] && split=test
 [ -z "${do_sample}" ] && do_sample=False
 [ -z "${temperature}" ] && temperature=0
@@ -28,14 +27,10 @@ export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
 [ -z "${use_vllm}" ] && use_vllm=True
 [ -z "${include_alt_gt_reports}" ] && include_alt_gt_reports=True
 [ -z "${alt_llm_name}" ] && alt_llm_name=o3
-[ -z "${use_controlled_alts}" ] && use_controlled_alts=True
 [ -z "${alt_sample_idx}" ] && alt_sample_idx=0
 
 log_root="${PROJECT_ROOT}/logs/eval"
-log_dir="${log_root}/${dataset_name}/"
-if [[ "${dataset_name}" == "mimic-cxr" || "${dataset_name}" == "rexval" ]]; then
-    log_dir="${log_dir}/${mimic_cxr_parser}"
-fi
+log_dir="${log_root}/${dataset_name}"
 mkdir -p "${log_dir}"
 
 if [[ "${do_sample}" == "true" ]]; then
@@ -48,7 +43,6 @@ python3 ${PROJECT_ROOT}/rrg_reref/eval/run_eval.py \
     --model_name ${model_name} \
     --dataset_name ${dataset_name} \
     --output_dir ${output_dir} \
-    --mimic_cxr_parser ${mimic_cxr_parser} \
     --split ${split} \
     --do_sample ${do_sample} \
     --temperature ${temperature} \
@@ -61,6 +55,5 @@ python3 ${PROJECT_ROOT}/rrg_reref/eval/run_eval.py \
     --use_vllm ${use_vllm} \
     --include_alt_gt_reports ${include_alt_gt_reports} \
     --alt_llm_name ${alt_llm_name} \
-    --use_controlled_alts ${use_controlled_alts} \
     --alt_sample_idx ${alt_sample_idx} \
     2>&1 | tee "${log_path}"

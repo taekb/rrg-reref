@@ -28,17 +28,10 @@ MODEL_TO_SECTIONS = {
     'X-iZhang/Med-CXRGen-F': ['findings'],
     'X-iZhang/Med-CXRGen-I': ['impression'],
     'X-iZhang/Med-CXRGen': ['findings', 'impression'],
-    'StanfordAIMI/CheXOne': ['findings', 'impression', 'findings-and-impression'],
-
-    # ReXVal metric-oracles
-    'oracle--BERTScore': ['impression'],
-    'oracle--BLEU': ['impression'],
-    'oracle--CheXbert': ['impression'],
-    'oracle--RadGraph-F1': ['impression']
+    'StanfordAIMI/CheXOne': ['findings', 'impression', 'findings-and-impression']
 }
 
 SUPPORTED_DATASETS = [
-    'rexval',
     'mimic-cxr',
     'chexpertplus',
     'iu-xray',

@@ -42,9 +42,6 @@ export MIMIC_CXR_DIR="/path/to/physionet.org/files/mimic-cxr/2.0.0"
 # MIMIC-CXR-JPG directory (PhysioNet release; used for images)
 export MIMIC_CXR_JPG_DIR="/path/to/physionet.org/files/mimic-cxr-jpg/2.0.0"
 
-# ReXVal directory (PhysioNet release)
-export REXVAL_DIR="/path/to/physionet.org/files/rexval-dataset/1.0.0"
-
 # IU X-ray directory (Kaggle release; downloaded via kagglehub)
 export IU_XRAY_DIR="${KAGGLEHUB_CACHE}/datasets/raddar/chest-xrays-indiana-university/versions/2"
 export IU_XRAY_IMAGE_DIR="${IU_XRAY_DIR}/images/images_normalized"

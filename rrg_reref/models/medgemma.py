@@ -9,14 +9,12 @@ import torch
 from transformers import AutoModelForImageTextToText, AutoProcessor
 from transformers import BitsAndBytesConfig
 
-# TODO: Add separate prompt construction for the MedGemma base model.
-# NOTE: For base model evaluation, it looks like they generated the "Findings" and then "Findings + Impression" altogether.
 def construct_prompt( 
     example: Union[dict,edict],
     image_dir: Union[str,Path],
     processor: Optional[AutoProcessor] = None,
     use_key_image_only: Optional[bool] = True,
-    dataset_name: Optional[str] = 'rexval',
+    dataset_name: Optional[str] = 'mimic-cxr',
     section_to_generate: Optional[str] = 'findings', 
     tokenize: Optional[bool] = True
 ):
@@ -29,7 +27,7 @@ def construct_prompt(
     example, image_dir = edict(example), Path(image_dir)
     if use_key_image_only:
         key_image_path = str(example.key_image_path).lstrip('/')
-        if dataset_name in ['rexval', 'mimic-cxr']:
+        if dataset_name == 'mimic-cxr':
             image_path = image_dir / 'files' / key_image_path
         elif dataset_name == 'chexpertplus':
             image_path = image_dir / key_image_path.replace('.jpg', '.png') # FIXME

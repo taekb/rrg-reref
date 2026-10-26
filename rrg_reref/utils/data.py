@@ -25,10 +25,9 @@ DATA_DIR = PROJECT_ROOT / 'data'
 def load_dataset(
     dataset_name: str,
     split: Optional[str] = 'test',
-    mimic_cxr_parser: Optional[str] = 'llm',
     load_alts: Optional[bool] = False,
-    axis_name: Optional[str] = None, # Name of style axis considered for controlled style variation
-    variation: Optional[str] = None, # Specific variation along style axis considered
+    axis_name: Optional[str] = None, # Name of reporting practice axis considered for controlled perturbation
+    variation: Optional[str] = None, # Specific variation along reporting practice axis considered
     llm_name: Optional[str] = 'claude-sonnet-4-5',
     sample_idx: Optional[int] = 0, # Index of the LLM-generated sample
     load_verification: Optional[bool] = False
@@ -37,34 +36,17 @@ def load_dataset(
 
     # Load alternative version of the dataset, with LLM-generated reports
     if load_alts:
-        # Controlled style variation
-        if axis_name is not None and variation is not None:
-            if dataset_name in ['mimic-cxr', 'rexval']:
-                json_dir = DATA_DIR / dataset_name / 'controlled-alts' / axis_name / variation / llm_name
-                data_path = json_dir / f'{split}_{mimic_cxr_parser}_{sample_idx}.json'
-                verification_path = json_dir / f'{split}_{mimic_cxr_parser}_verification_{sample_idx}.json'
-            else:
-                json_dir = DATA_DIR / dataset_name / 'controlled-alts' / axis_name / variation / llm_name
-                data_path = json_dir / f'{split}_{sample_idx}.json'
-                verification_path = json_dir / f'{split}_verification_{sample_idx}.json'
-
-        # Random style variation
-        else:
-            if dataset_name in ['mimic-cxr', 'rexval']:
-                json_dir = DATA_DIR / dataset_name / 'random-alts' / llm_name
-                data_path = json_dir / f'{split}_{mimic_cxr_parser}_{sample_idx}.json'
-                verification_path = json_dir / f'{split}_{mimic_cxr_parser}_verification_{sample_idx}.json'
-            else:
-                json_dir = DATA_DIR / dataset_name / 'random-alts' / llm_name
-                data_path = json_dir / f'{split}_{sample_idx}.json'
-                verification_path = json_dir / f'{split}_verification_{sample_idx}.json'
+        # Controlled perturbation along a single axis
+        assert axis_name is not None and variation is not None, (
+            'Both axis_name and variation must be specified when loading alternative references.'
+        )
+        json_dir = DATA_DIR / dataset_name / 'controlled-alts' / axis_name / variation / llm_name
+        data_path = json_dir / f'{split}_{sample_idx}.json'
+        verification_path = json_dir / f'{split}_verification_{sample_idx}.json'
     
     # Load the original ground-truth dataset
     else:
-        if dataset_name in ['mimic-cxr', 'rexval']:
-            data_path = DATA_DIR / dataset_name / f'{split}_{mimic_cxr_parser}.json'
-        else:
-            data_path = DATA_DIR / dataset_name / f'{split}.json'
+        data_path = DATA_DIR / dataset_name / f'{split}.json'
     
     with open(data_path) as fh:
         dataset = edict(json.load(fh))
@@ -153,16 +135,12 @@ def compute_edit_distance(orig_report: str, alt_report: str) -> int:
 def retrieve_alts_for_study(
     dataset_name: str,
     study_id: int,
-    mimic_cxr_parser: Optional[str] = 'llm',
     split: Optional[str] = 'test',
-    controlled: Optional[bool] = False,
     axis_names: Optional[List[str]] = [
         'structure',
         'section_assignment',
         'findings_scope',
-        'technical_quality',
         'anatomical_granularity',
-        'spatial_granularity',
         'quantitative_granularity',
         'terminology',
         'hedging',
@@ -173,94 +151,53 @@ def retrieve_alts_for_study(
     sample_idx: Optional[Union[int, List[int]]] = 0,
     select_meaningful_alts: Optional[bool] = True,
     verbose: Optional[bool] = True
-) -> List[Dict[str,str]]:
-    '''Retrieves all alternative reports for a given study.'''
+) -> Dict[str,Dict[str,Optional[str]]]:
+    '''Retrieves all axis-wise alternative reports for a given study.'''
 
     if verbose:
         print(f'Retrieving alternative reports for study "{study_id}" in "{dataset_name}" dataset...')
     
-    # Retrieve axis-wise style variations
-    if controlled:
-        try:
-            from rrg_reref.style.axes import get_style_axis_cls
-        except:
-            sys.path.append(
-                str(Path(os.getenv('PROJECT_ROOT')) / 'rrg_reref' / 'style')
-            )
-            from axes import get_style_axis_cls
+    # Retrieve axis-wise variations
+    try:
+        from rrg_reref.reref.axes import get_axis_cls
+    except:
+        sys.path.append(
+            str(Path(os.getenv('PROJECT_ROOT')) / 'rrg_reref' / 'reref')
+        )
+        from axes import get_axis_cls
 
-        alt_sections_dict = defaultdict(dict)
-        pbar = tqdm(axis_names, desc='Loading axis variations', disable=(not verbose))
-        for axis_name in pbar:
-            axis_obj = get_style_axis_cls(axis_name)()
-            
-            if axis_obj.axis_type == 'absolute':
-                variations = axis_obj.variations
-            else:
-                variations = ['alternative']
+    alt_sections_dict = defaultdict(dict)
+    pbar = tqdm(axis_names, desc='Loading axis variations', disable=(not verbose))
+    for axis_name in pbar:
+        axis_obj = get_axis_cls(axis_name)()
 
-            for variation in variations:
-                alt_dataset, alt_verification = load_dataset(
-                    dataset_name=dataset_name,
-                    mimic_cxr_parser=mimic_cxr_parser,
-                    split=split,
-                    load_alts=True,
-                    axis_name=axis_name,
-                    variation=variation,
-                    llm_name=llm_name,
-                    sample_idx=sample_idx,
-                    load_verification=True
-                )
-                if section_to_retrieve == 'findings-and-impression':
-                    findings = alt_dataset[str(study_id)]['section_findings']
-                    impression = alt_dataset[str(study_id)]['section_impression']
-                    findings_text = '' if pd.isna(findings) else findings
-                    impression_text = '' if pd.isna(impression) else impression
-                    alt_section = (
-                        'FINDINGS:\n\n' + findings_text + '\n\n' +
-                        'IMPRESSION:\n\n' + impression_text
-                    )
-                else:
-                    alt_section = alt_dataset[str(study_id)][f'section_{section_to_retrieve}']
+        if axis_obj.axis_type == 'absolute':
+            variations = axis_obj.variations
+        else:
+            variations = ['alternative']
 
-                # Check verification output
-                verification = alt_verification[str(study_id)]
-                is_clinically_consistent = verification.is_clinically_consistent
-                is_valid_perturbation = verification.is_valid_perturbation
-                does_not_contain_required_info = verification.does_not_contain_required_info
-                is_already_in_expected_form = verification.is_already_in_expected_form
-                reasoning = verification.reasoning
-
-                if is_clinically_consistent and is_valid_perturbation:
-                    # Also check if the alternative report is not a meaningful variation
-                    if select_meaningful_alts and (does_not_contain_required_info or is_already_in_expected_form):
-                        alt_sections_dict[axis_name][variation] = None
-                    else:
-                        alt_sections_dict[axis_name][variation] = alt_section
-                else:
-                    print(f'No valid alternative found for "{axis_name}: {variation}".')
-                    alt_sections_dict[axis_name][variation] = None
-
-        # Return the dictionary of alternative reports
-        return dict(alt_sections_dict)
-
-    # Retrieve random style variations
-    else:
-        alt_sections = []
-        if isinstance(sample_idx, int):
-            sample_idx = [sample_idx]
-
-        for idx in sample_idx:
+        for variation in variations:
             alt_dataset, alt_verification = load_dataset(
                 dataset_name=dataset_name,
-                mimic_cxr_parser=mimic_cxr_parser,
                 split=split,
                 load_alts=True,
+                axis_name=axis_name,
+                variation=variation,
                 llm_name=llm_name,
-                sample_idx=idx,
+                sample_idx=sample_idx,
                 load_verification=True
             )
-            alt_section = alt_dataset[str(study_id)][f'section_{section_to_retrieve}']
+            if section_to_retrieve == 'findings-and-impression':
+                findings = alt_dataset[str(study_id)]['section_findings']
+                impression = alt_dataset[str(study_id)]['section_impression']
+                findings_text = '' if pd.isna(findings) else findings
+                impression_text = '' if pd.isna(impression) else impression
+                alt_section = (
+                    'FINDINGS:\n\n' + findings_text + '\n\n' +
+                    'IMPRESSION:\n\n' + impression_text
+                )
+            else:
+                alt_section = alt_dataset[str(study_id)][f'section_{section_to_retrieve}']
 
             # Check verification output
             verification = alt_verification[str(study_id)]
@@ -270,10 +207,15 @@ def retrieve_alts_for_study(
             is_already_in_expected_form = verification.is_already_in_expected_form
             reasoning = verification.reasoning
 
-            if is_clinically_consistent:
-                alt_sections.append(alt_section)
+            if is_clinically_consistent and is_valid_perturbation:
+                # Also check if the alternative report is not a meaningful variation
+                if select_meaningful_alts and (does_not_contain_required_info or is_already_in_expected_form):
+                    alt_sections_dict[axis_name][variation] = None
+                else:
+                    alt_sections_dict[axis_name][variation] = alt_section
             else:
-                print(f'No valid alternative found for sample index {idx}.')
-                alt_sections.append(None)
+                print(f'No valid alternative found for "{axis_name}: {variation}".')
+                alt_sections_dict[axis_name][variation] = None
 
-        return alt_sections
+    # Return the dictionary of alternative reports
+    return dict(alt_sections_dict)

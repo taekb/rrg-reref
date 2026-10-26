@@ -12,9 +12,7 @@ source ${PROJECT_ROOT}/configs/env_vars.sh
 
 [ -z "${llm_generator_name}" ] && llm_generator_name=o3
 [ -z "${llm_verifier_name}" ] && llm_verifier_name=o3
-[ -z "${dataset_name}" ] && dataset_name=rexval
-[ -z "${mimic_cxr_parser}" ] && mimic_cxr_parser=llm
-[ -z "${controlled}" ] && controlled=True
+[ -z "${dataset_name}" ] && dataset_name=mimic-cxr
 [ -z "${n_alts}" ] && n_alts=1
 [ -z "${temperature}" ] && temperature=0.7
 [ -z "${top_p}" ] && top_p=None
@@ -23,24 +21,15 @@ source ${PROJECT_ROOT}/configs/env_vars.sh
 [ -z "${verify_alts}" ] && verify_alts=True
 [ -z "${max_retries}" ] && max_retries=5
 
-log_root="${PROJECT_ROOT}/logs/style"
-if [[ "${controlled}" == "True" ]]; then
-    log_dir="${log_root}/${dataset_name}/${llm_generator_name}/controlled"
-else
-    log_dir="${log_root}/${dataset_name}/${llm_generator_name}/random"
-fi
-if [[ "${dataset_name}" == "mimic-cxr" || "${dataset_name}" == "rexval" ]]; then
-    log_dir="${log_dir}/${mimic_cxr_parser}"
-fi
+log_root="${PROJECT_ROOT}/logs/reref"
+log_dir="${log_root}/${dataset_name}/${llm_generator_name}"
 mkdir -p "${log_dir}"
 log_path="${log_dir}/n_alts=${n_alts}_T=${temperature}_P=${top_p}_t=${max_tokens}.log"
 
-python3 ${PROJECT_ROOT}/rrg_reref/style/generate_alts.py \
+python3 ${PROJECT_ROOT}/rrg_reref/reref/generate_alts.py \
     --llm_generator_name ${llm_generator_name} \
     --llm_verifier_name ${llm_verifier_name} \
     --dataset_name ${dataset_name} \
-    --mimic_cxr_parser ${mimic_cxr_parser} \
-    --controlled ${controlled} \
     --n_alts ${n_alts} \
     --temperature ${temperature} \
     --top_p ${top_p} \

@@ -18,7 +18,7 @@ def _resolve_image_path(
     '''Resolve a relative image path to its full filesystem path.'''
 
     rel_path = str(rel_path).lstrip('/')
-    if dataset_name in ['rexval', 'mimic-cxr']:
+    if dataset_name == 'mimic-cxr':
         return image_dir / 'files' / rel_path
     elif dataset_name == 'chexpertplus':
         return image_dir / rel_path.replace('.jpg', '.png')
@@ -30,7 +30,7 @@ def construct_prompt(
     image_dir: Union[str,Path],
     processor: Optional[AutoProcessor] = None,
     use_key_image_only: Optional[bool] = False,
-    dataset_name: Optional[str] = 'rexval',
+    dataset_name: Optional[str] = 'mimic-cxr',
     section_to_generate: Optional[str] = 'findings'
 ):
     '''Constructs a prompt for MAIRA-2 given an example.'''

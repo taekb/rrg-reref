@@ -16,9 +16,8 @@ PROJECT_ROOT=${SCRIPT_DIR}/../..
 source ${PROJECT_ROOT}/configs/env_vars.sh
 
 [ -z "${model_name}" ] && model_name=google/medgemma-4b-it
-[ -z "${dataset_name}" ] && dataset_name=rexval
+[ -z "${dataset_name}" ] && dataset_name=mimic-cxr
 [ -z "${output_dir}" ] && output_dir=${PROJECT_ROOT}/results
-[ -z "${mimic_cxr_parser}" ] && mimic_cxr_parser=llm
 [ -z "${section_to_generate}" ] && section_to_generate=findings
 [ -z "${split}" ] && split=test
 [ -z "${load_pretrained}" ] && load_pretrained=True
@@ -55,9 +54,6 @@ fi
 
 log_root="${PROJECT_ROOT}/logs/inference"
 log_dir="${log_root}/${dataset_name}"
-if [[ "${dataset_name}" == "mimic-cxr" || "${dataset_name}" == "rexval" ]]; then
-    log_dir="${log_dir}/${mimic_cxr_parser}"
-fi
 mkdir -p "${log_dir}"
 
 if [[ "${do_sample}" == "true" ]]; then
@@ -74,7 +70,6 @@ accelerate launch --num_processes=${gpu_num} --main_process_port ${main_process_
     --model_name ${model_name} \
     --dataset_name ${dataset_name} \
     --output_dir ${output_dir} \
-    --mimic_cxr_parser ${mimic_cxr_parser} \
     --section_to_generate ${section_to_generate} \
     --split ${split} \
     --load_pretrained ${load_pretrained} \

@@ -63,7 +63,7 @@ def construct_prompt(
     model_config=None,
     conv_mode: str = 'libra_v1',
     use_key_image_only: bool = True,
-    dataset_name: str = 'rexval',
+    dataset_name: str = 'mimic-cxr',
     section_to_generate: str = 'findings',
 ):
     '''Constructs inputs for a Libra-based model given a dataset example.'''
@@ -72,7 +72,7 @@ def construct_prompt(
 
     if use_key_image_only:
         key_image_path = str(example.key_image_path).lstrip('/')
-        if dataset_name in ['rexval', 'mimic-cxr']:
+        if dataset_name == 'mimic-cxr':
             image_path = image_dir / 'files' / key_image_path
         elif dataset_name == 'chexpertplus':
             image_path = image_dir / key_image_path.replace('.jpg', '.png')
@@ -94,7 +94,7 @@ def construct_prompt(
         pil_images = []
         for rel_path, _ in paired[:4]: # Stitch images horizontally up to 4 images
             rel_path = str(rel_path).lstrip('/')
-            if dataset_name in ['rexval', 'mimic-cxr']:
+            if dataset_name == 'mimic-cxr':
                 resolved = image_dir / 'files' / rel_path
             elif dataset_name == 'chexpertplus':
                 resolved = image_dir / rel_path.replace('.jpg', '.png')

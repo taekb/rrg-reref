@@ -6,6 +6,7 @@ __pycache__/
 
 # Data/results/logs (generated at runtime)
 data/
+!scripts/data/
 results/
 logs/
 flagged_studies.json

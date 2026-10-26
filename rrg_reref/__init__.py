@@ -1,6 +1,6 @@
 import importlib
 
-__all__ = ['models', 'style', 'utils']
+__all__ = ['models', 'reref', 'utils']
 
 def __getattr__(name):
     if name in __all__:

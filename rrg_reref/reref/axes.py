@@ -2,11 +2,11 @@ from dataclasses import dataclass, field
 from typing import List, Dict
 
 @dataclass
-class StyleAxis:
-    '''Base class for all axes of stylistic variation in radiology reports.'''
+class ReportingPracticeAxis:
+    '''Base class for all axes of reporting practice variation in radiology reports (Section 2.1).'''
     
     name: str = field(default='')
-    axis_group: str = field(default='')
+    dimension: str = field(default='')
     axis_type: str = field(default='')
     description: str = field(default='')
     variations: List[str] = field(default_factory=lambda: [])
@@ -15,36 +15,36 @@ class StyleAxis:
     constraints: List[str] = field(default_factory=lambda: [])
 
 '''
-    Higher level style axis groups.
+    Reporting practice dimensions: Organization, Completeness, Granularity, and Language.
 
 '''
 
 @dataclass
-class Organization(StyleAxis):
+class Organization(ReportingPracticeAxis):
     '''Axis controlling the organization of the report.'''
     
-    axis_group: str = field(default='organization')
+    dimension: str = field(default='organization')
 
 @dataclass
-class Completeness(StyleAxis):
+class Completeness(ReportingPracticeAxis):
     '''Axis controlling the completeness of findings descriptions.'''
     
-    axis_group: str = field(default='completeness')
+    dimension: str = field(default='completeness')
 
 @dataclass
-class Granularity(StyleAxis):
-    '''Axis controlling the anatomical, spatial, and quantitative granularity of findings descriptions.'''
+class Granularity(ReportingPracticeAxis):
+    '''Axis controlling the anatomical and quantitative granularity of findings descriptions.'''
 
-    axis_group: str = field(default='granularity')
+    dimension: str = field(default='granularity')
 
 @dataclass
-class Language(StyleAxis):
-    '''Axis controlling the linguistic style of the report.'''
+class Language(ReportingPracticeAxis):
+    '''Axis controlling the language of the report (terminology, hedging, negation).'''
 
-    axis_group: str = field(default='language')
+    dimension: str = field(default='language')
 
 '''
-    Style axes corresponding to the "Organization" group.
+    Axes under the "Organization" dimension.
 
 '''
 
@@ -185,7 +185,7 @@ class SectionAssignment(Organization):
     ])
 
 '''
-    Style axes corresponding to the "Completeness" group.
+    Axes under the "Completeness" dimension.
 
 '''
 
@@ -261,57 +261,8 @@ class FindingsScope(Completeness):
     ])
     constraints: List[str] = field(default_factory=lambda: [])
 
-# FIXME: Obsolete; this has been merged with FindingsScope.
-@dataclass
-class TechnicalQuality(Completeness):
-    name: str = field(default='technical_quality')
-    axis_type: str = field(default='absolute')
-    description: str = field(default=(
-        'Some radiologists include comments on imaging quality, patient positioning, and/or technical issues or artifacts, '
-        'while others omit such discussion entirely or include only brief references.'
-    ))
-    variations: List[str] = field(default_factory=lambda: ['discusses_technical_quality', 'does_not_discuss_technical_quality'])
-    variation_descriptions: Dict[str,str] = field(default_factory=lambda: dict(
-        discusses_technical_quality='Includes comments on imaging quality, patient positioning, technical issues or artifacts.',
-        does_not_discuss_technical_quality='Does not include discussion of imaging quality, patient positioning, technical issues or artifacts.'
-    ))
-    examples: List[Dict[str,str]] = field(default_factory=lambda: [
-        dict(
-            discusses_technical_quality=(
-                'QUALITY: Frontal and lateral views. The patient is slightly rotated to the right. '
-                'Low lung volumes limit evaluation. Portable technique. No motion artifact.\n\n'
-                'Small bilateral pleural effusions. Bibasilar opacities likely reflect atelectasis, '
-                'though infection or aspiration cannot be excluded in the appropriate clinical setting. '
-                'Mild pulmonary vascular congestion. Cardiomegaly. No pneumothorax. '
-                'Atherosclerotic calcification of the thoracic aorta.'
-            ),
-            does_not_discuss_technical_quality=(
-                'Small bilateral pleural effusions. Bibasilar opacities likely reflect atelectasis, '
-                'though infection or aspiration cannot be excluded in the appropriate clinical setting. '
-                'Mild pulmonary vascular congestion. Cardiomegaly. No pneumothorax. '
-                'Atherosclerotic calcification of the thoracic aorta.'
-            )
-        ),
-        dict(
-            discusses_technical_quality=(
-                'Portable AP radiograph demonstrates low lung volumes with mild rotation. '
-                'The lungs are clear bilaterally. No pleural effusion or pneumothorax. '
-                'The cardiomediastinal silhouette is within normal limits for this projection. '
-                'Visualized osseous structures are unremarkable.'
-            ),
-            does_not_discuss_technical_quality=(
-                'The lungs are clear bilaterally. No pleural effusion or pneumothorax. '
-                'The cardiomediastinal silhouette is within normal limits. '
-                'Visualized osseous structures are unremarkable.'
-            )
-        )
-    ])
-    constraints: List[str] = field(default_factory=lambda: [
-        'Only perturb along this axis if the original report includes any discussion of technical quality.'
-    ])
-
 '''
-    Style axes corresponding to the "Granularity" group.
+    Axes under the "Granularity" dimension.
 
 '''
 
@@ -388,32 +339,6 @@ class AnatomicalGranularity(Granularity):
     ])
     constraints: List[str] = field(default_factory=lambda: [])
 
-# FIXME: Obsolete; this has been merged with AnatomicalGranularity.
-@dataclass
-class SpatialGranularity(Granularity):
-    name: str = field(default='spatial_granularity')
-    axis_type: str = field(default='absolute')
-    description: str = field(default=(
-        'Some radiologists describe locations with high precision, '
-        'while others use broader regional descriptions that may not uniquely identify a single location.'
-    ))
-    variations: List[str] = field(default_factory=lambda: ['high', 'low'])
-    variation_descriptions: Dict[str,str] = field(default_factory=lambda: dict(
-        high='Describes locations with high precision.',
-        low='Uses broader regional descriptions that may not uniquely identify a single location.'
-    ))
-    examples: List[Dict[str,str]] = field(default_factory=lambda: [
-        dict(
-            high='Opacity in the posterior basal segment of the left lower lobe.',
-            low='Opacity in the left lung base.'
-        ),
-        dict(
-            high='Pleural effusion layering along the right lateral costophrenic sulcus.',
-            low='Right pleural effusion.'
-        )
-    ])
-    constraints: List[str] = field(default_factory=lambda: [])
-
 @dataclass
 class QuantitativeGranularity(Granularity):
     name: str = field(default='quantitative_granularity')
@@ -453,7 +378,7 @@ class QuantitativeGranularity(Granularity):
     ])
 
 '''
-    Style axes corresponding to the "Language" group.
+    Axes under the "Language" dimension.
 
 '''
 
@@ -573,16 +498,14 @@ class Negation(Language):
         'Avoid ambiguous implicit statements that could be misinterpreted.'
     ])
 
-def get_style_axis_cls(name: str) -> StyleAxis:
-    '''Returns the corresponding style axis class for the given name.'''
+def get_axis_cls(name: str) -> ReportingPracticeAxis:
+    '''Returns the corresponding reporting practice axis class for the given name.'''
 
     return dict(
         structure=Structure,
         section_assignment=SectionAssignment,
         findings_scope=FindingsScope,
-        technical_quality=TechnicalQuality,
         anatomical_granularity=AnatomicalGranularity,
-        spatial_granularity=SpatialGranularity,
         quantitative_granularity=QuantitativeGranularity,
         terminology=Terminology,
         hedging=Hedging,

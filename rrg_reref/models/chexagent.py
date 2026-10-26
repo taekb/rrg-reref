@@ -13,7 +13,7 @@ def construct_prompt(
     image_dir: Union[str,Path],
     tokenizer: Optional[AutoTokenizer] = None,
     use_key_image_only: Optional[bool] = False,
-    dataset_name: Optional[str] = 'rexval',
+    dataset_name: Optional[str] = 'mimic-cxr',
     section_to_generate: Optional[str] = 'findings',
     tokenize: Optional[bool] = True
 ):
@@ -26,7 +26,7 @@ def construct_prompt(
     example, image_dir = edict(example), Path(image_dir)
     if use_key_image_only:
         key_image_path = str(example.key_image_path).lstrip('/')
-        if dataset_name in ['rexval', 'mimic-cxr']:
+        if dataset_name == 'mimic-cxr':
             image_path = image_dir / 'files' / key_image_path
         elif dataset_name == 'chexpertplus':
             image_path = image_dir / key_image_path.replace('.jpg', '.png') # FIXME
@@ -50,7 +50,7 @@ def construct_prompt(
         image_paths = []
         for rel_path, _ in paired[:2]: # Max 2 images per study
             rel_path = str(rel_path).lstrip('/')
-            if dataset_name in ['rexval', 'mimic-cxr']:
+            if dataset_name == 'mimic-cxr':
                 resolved = image_dir / 'files' / rel_path
             elif dataset_name == 'chexpertplus':
                 resolved = image_dir / rel_path.replace('.jpg', '.png')
