@@ -7,7 +7,7 @@ name = "rrg-reref"
 version = "0.1.0"
 description = "Reporting Practice Matters: The Impact of Reference Choice on Chest X-ray Report Evaluation."
 authors = [
-    { name="Anonymous" }
+    { name="Daniel P. Jeong", email="danielje@cs.cmu.edu" }
 ]
 readme = "README.md"
 requires-python = ">=3.11"
